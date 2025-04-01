@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+python-dotenv
+requests
+psycopg2-binary
+pytesseract
+opencv-python
+pandas
+prophet
