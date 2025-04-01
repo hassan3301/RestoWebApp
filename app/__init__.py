@@ -13,6 +13,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
 
+    from app.models import Inventory, Sales, SalesItem, Waste
     db.init_app(app)
     migrate.init_app(app, db)
 
