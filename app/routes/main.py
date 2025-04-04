@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template, redirect, url_for, flash
 from app import db
 from app.models import Inventory, Sales, SalesItem, Waste
 from datetime import datetime, timezone
@@ -24,18 +24,6 @@ def get_inventory():
     ]
     return jsonify(data), 200
 
-@bp.route('/inventory', methods=['POST'])
-def add_inventory_item():
-    data = request.json
-    item = Inventory(
-        item_name=data['item_name'],
-        quantity=data['quantity'],
-        unit_cost=data['unit_cost'],
-        last_updated=datetime.now(timezone.utc)
-    )
-    db.session.add(item)
-    db.session.commit()
-    return jsonify({'message': 'Item added'}), 201
 
 # --- Waste Logging ---
 
@@ -104,3 +92,35 @@ def get_sales():
         for sale in sales
     ]
     return jsonify(data), 200
+
+@bp.route("/sales_dashboard")
+def sales_dashboard():
+    sales = Sales.query.order_by(Sales.sale_date.desc()).all()
+    return render_template("sales_dashboard.html", sales=sales)
+
+@bp.route("/inventory_dashboard")
+def inventory_dashboard():
+    inventory = Inventory.query.order_by(Inventory.item_name).all()
+    return render_template("inventory_dashboard.html", inventory=inventory)
+
+@bp.route("/inventory/add", methods=["GET", "POST"])
+def add_inventory_item():
+    if request.method == "POST":
+        item_name = request.form.get("item_name")
+        quantity = float(request.form.get("quantity"))
+        unit_cost = float(request.form.get("unit_cost"))
+
+        from datetime import datetime, timezone
+        new_item = Inventory(
+            item_name=item_name,
+            quantity=quantity,
+            unit_cost=unit_cost,
+            last_updated=datetime.now(timezone.utc)
+        )
+        db.session.add(new_item)
+        db.session.commit()
+
+        flash("Inventory item added!", "success")
+        return redirect(url_for("main.inventory_dashboard"))
+
+    return render_template("add_inventory.html")

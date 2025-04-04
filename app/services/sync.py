@@ -5,7 +5,6 @@ from datetime import datetime
 
 def sync_sales_from_square():
     sales = get_sales_with_items()
-
     if not sales:
         print("No sales data returned from Square.")
         return
