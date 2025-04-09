@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Add Menu Item{% endblock %}
+{% block content %}
+<h1 class="mb-4">Add Menu Item & Recipe</h1>
+
+<form method="POST">
+  <div class="mb-3">
+    <label class="form-label">Menu Item Name</label>
+    <input type="text" name="name" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Price ($)</label>
+    <input type="number" step="any" name="price" class="form-control" required>
+  </div>
+
+  <h4 class="mt-4">Ingredients</h4>
+  {% for ingredient in ingredients %}
+  <div class="mb-2 row">
+    <label class="col-sm-4 col-form-label">{{ ingredient.name }} ({{ ingredient.unit }})</label>
+    <div class="col-sm-4">
+      <input type="number" step="any" class="form-control" name="ingredient_{{ ingredient.id }}" placeholder="Quantity">
+    </div>
+  </div>
+  {% endfor %}
+
+  <button type="submit" class="btn btn-success mt-3">Add to Menu</button>
+  <a href="{{ url_for('main.inventory_dashboard') }}" class="btn btn-secondary mt-3">Cancel</a>
+</form>
+{% endblock %}

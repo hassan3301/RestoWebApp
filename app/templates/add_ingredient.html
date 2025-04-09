@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Add Ingredient{% endblock %}
+{% block content %}
+<h1 class="mb-4">Add Ingredient</h1>
+
+<form method="POST">
+  <div class="mb-3">
+    <label class="form-label">Name</label>
+    <input type="text" name="name" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Quantity in Stock</label>
+    <input type="number" step="any" name="quantity" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Unit</label>
+    <input type="text" name="unit" class="form-control" placeholder="e.g. grams, ml, units" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Unit Cost ($)</label>
+    <input type="number" step="any" name="unit_cost" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-success">Add Ingredient</button>
+  <a href="{{ url_for('main.inventory_dashboard') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, render_template, redirect, url_for, flash, get_flashed_messages
 from app import db
-from app.models import Inventory, Sales, SalesItem, Waste
+from app.models import Inventory, Sales, SalesItem, Waste, Ingredient, Recipe, RecipeIngredient
 from datetime import datetime, timezone
 
 bp = Blueprint('main', __name__)
@@ -8,21 +8,6 @@ bp = Blueprint('main', __name__)
 @bp.route('/')
 def index():
     return "RestoWebApp is running!"
-
-@bp.route('/inventory', methods=['GET'])
-def get_inventory():
-    inventory = Inventory.query.all()
-    data = [
-        {
-            'id': item.id,
-            'item_name': item.item_name,
-            'quantity': item.quantity,
-            'unit_cost': item.unit_cost,
-            'last_updated': item.last_updated.isoformat()
-        }
-        for item in inventory
-    ]
-    return jsonify(data), 200
 
 
 # --- Waste Logging ---
@@ -98,10 +83,12 @@ def sales_dashboard():
     sales = Sales.query.order_by(Sales.sale_date.desc()).all()
     return render_template("sales_dashboard.html", sales=sales)
 
-@bp.route("/inventory_dashboard")
+@bp.route("/inventory")
 def inventory_dashboard():
-    inventory = Inventory.query.order_by(Inventory.item_name).all()
-    return render_template("inventory_dashboard.html", inventory=inventory)
+    from app.models import Ingredient
+    ingredients = Ingredient.query.order_by(Ingredient.name).all()
+    return render_template("inventory_dashboard.html", ingredients=ingredients)
+
 
 @bp.route("/inventory/add", methods=["GET", "POST"])
 def add_inventory_item():
@@ -150,4 +137,101 @@ def delete_inventory_item(item_id):
     db.session.delete(item)
     db.session.commit()
     flash("Item deleted", "success")
+    return redirect(url_for("main.inventory_dashboard"))
+
+
+@bp.route("/menu/add", methods=["GET", "POST"])
+def add_menu_item():
+    from app.models import MenuItem, Recipe, RecipeIngredient, Ingredient
+    from datetime import datetime, timezone
+
+    ingredients = Ingredient.query.order_by(Ingredient.name).all()
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        price = float(request.form.get("price"))
+
+        # Create the MenuItem
+        menu_item = MenuItem(name=name, price=price)
+        db.session.add(menu_item)
+        db.session.flush()  # get ID before creating recipe
+
+        # Create associated Recipe
+        recipe = Recipe(menu_item_id=menu_item.id)
+        db.session.add(recipe)
+        db.session.flush()
+
+        # Loop through ingredients
+        for ingredient in ingredients:
+            qty_str = request.form.get(f"ingredient_{ingredient.id}")
+            if qty_str:
+                qty = float(qty_str)
+                if qty > 0:
+                    ri = RecipeIngredient(
+                        recipe_id=recipe.id,
+                        ingredient_id=ingredient.id,
+                        quantity_required=qty
+                    )
+                    db.session.add(ri)
+
+        db.session.commit()
+        flash("Menu item and recipe added!", "success")
+        return redirect(url_for("main.inventory_dashboard"))
+
+    return render_template("add_menu_item.html", ingredients=ingredients)
+
+@bp.route("/ingredients/add", methods=["GET", "POST"])
+def add_ingredient():
+    from app.models import Ingredient
+
+    if request.method == "POST":
+        name = request.form.get("name").strip().lower()  # normalize
+        quantity = float(request.form.get("quantity"))
+        unit = request.form.get("unit")
+        unit_cost = float(request.form.get("unit_cost"))
+
+        # Check for duplicate
+        existing = Ingredient.query.filter_by(name=name).first()
+        if existing:
+            flash(f"Ingredient '{name}' already exists!", "danger")
+            return redirect(url_for("main.add_ingredient"))
+
+        ingredient = Ingredient(
+            name=name,
+            quantity_in_stock=quantity,
+            unit=unit,
+            unit_cost=unit_cost
+        )
+        db.session.add(ingredient)
+        db.session.commit()
+        flash("Ingredient added!", "success")
+        return redirect(url_for("main.inventory_dashboard"))
+
+    return render_template("add_ingredient.html")
+
+@bp.route("/ingredients/<ingredient_id>/edit", methods=["GET", "POST"])
+def edit_ingredient(ingredient_id):
+    from app.models import Ingredient
+    ingredient = Ingredient.query.get_or_404(ingredient_id)
+
+    if request.method == "POST":
+        ingredient.name = request.form.get("name")
+        ingredient.quantity_in_stock = float(request.form.get("quantity"))
+        ingredient.unit = request.form.get("unit")
+        ingredient.unit_cost = float(request.form.get("unit_cost"))
+        db.session.commit()
+
+        flash("Ingredient updated successfully", "success")
+        return redirect(url_for("main.inventory_dashboard"))
+
+    return render_template("edit_ingredient.html", ingredient=ingredient)
+
+
+@bp.route("/ingredients/<ingredient_id>/delete", methods=["POST"])
+def delete_ingredient(ingredient_id):
+    from app.models import Ingredient
+    ingredient = Ingredient.query.get_or_404(ingredient_id)
+    db.session.delete(ingredient)
+    db.session.commit()
+    flash("Ingredient deleted", "success")
     return redirect(url_for("main.inventory_dashboard"))

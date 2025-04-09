@@ -1,32 +1,34 @@
 {% extends "base.html" %}
-{% block title %}Inventory{% endblock %}
+{% block title %}Ingredient Inventory{% endblock %}
 {% block content %}
-<h1 class="mb-4">Inventory</h1>
-<table class="table table-bordered table-hover">
+<h1 class="mb-4">Ingredient Inventory</h1>
+
+<table class="table table-striped table-bordered">
   <thead class="table-dark">
     <tr>
-      <th>Item Name</th>
-      <th>Quantity</th>
+      <th>Name</th>
+      <th>Quantity in Stock</th>
+      <th>Unit</th>
       <th>Unit Cost ($)</th>
-      <th>Last Updated</th>
       <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-    {% for item in inventory %}
+    {% for ing in ingredients %}
     <tr>
-      <td>{{ item.item_name }}</td>
-      <td>{{ item.quantity }}</td>
-      <td>{{ "%.2f"|format(item.unit_cost) }}</td>
-      <td>{{ item.last_updated.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>{{ ing.name }}</td>
+      <td>{{ ing.quantity_in_stock }}</td>
+      <td>{{ ing.unit }}</td>
+      <td>{{ "%.2f"|format(ing.unit_cost) }}</td>
       <td>
-        <a href="{{ url_for('main.edit_inventory_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit</a>
-        <form action="{{ url_for('main.delete_inventory_item', item_id=item.id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this item?');">
+        <a href="{{ url_for('main.edit_ingredient', ingredient_id=ing.id) }}" class="btn btn-sm btn-primary">Edit</a>
+        <form method="POST" action="{{ url_for('main.delete_ingredient', ingredient_id=ing.id) }}" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this ingredient?');">
           <button type="submit" class="btn btn-sm btn-danger">Delete</button>
         </form>
       </td>
     </tr>
     {% endfor %}
   </tbody>
+  
 </table>
 {% endblock %}
