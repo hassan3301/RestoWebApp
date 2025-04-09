@@ -5,7 +5,7 @@ import uuid
 class Inventory(db.Model):
     __tablename__ = 'inventory'
 
-    id = db.Column(db.String(50), primary_key=True)
+    id = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid.uuid4()))
     item_name = db.Column(db.String(100), nullable=False)
     quantity = db.Column(db.Float, nullable=False)
     unit_cost = db.Column(db.Float, nullable=False)
@@ -14,7 +14,7 @@ class Inventory(db.Model):
 class Sales(db.Model):
     __tablename__ = 'sales'
 
-    id = db.Column(db.String(50), primary_key=True)
+    id = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid.uuid4()))
     sale_date = db.Column(db.Date, nullable=False)
     total_amount = db.Column(db.Float, nullable=False)
 
@@ -32,7 +32,7 @@ class SalesItem(db.Model):
 class Waste(db.Model):
     __tablename__ = 'waste'
 
-    id = db.Column(db.String(50), primary_key=True)
+    id = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid.uuid4()))
     item_name = db.Column(db.String(100), nullable=False)
     quantity = db.Column(db.Float, nullable=False)
     reason = db.Column(db.String(255))

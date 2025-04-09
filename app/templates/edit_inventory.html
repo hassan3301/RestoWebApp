@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Edit Inventory Item{% endblock %}
+{% block content %}
+<h1 class="mb-4">Edit Item</h1>
+
+<form method="POST">
+  <div class="mb-3">
+    <label class="form-label">Item Name</label>
+    <input type="text" name="item_name" value="{{ item.item_name }}" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Quantity</label>
+    <input type="number" name="quantity" value="{{ item.quantity }}" step="any" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Unit Cost ($)</label>
+    <input type="number" name="unit_cost" value="{{ item.unit_cost }}" step="any" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Save Changes</button>
+  <a href="{{ url_for('main.inventory_dashboard') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

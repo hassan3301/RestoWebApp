@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, redirect, url_for, flash
+from flask import Blueprint, jsonify, request, render_template, redirect, url_for, flash, get_flashed_messages
 from app import db
 from app.models import Inventory, Sales, SalesItem, Waste
 from datetime import datetime, timezone
@@ -124,3 +124,30 @@ def add_inventory_item():
         return redirect(url_for("main.inventory_dashboard"))
 
     return render_template("add_inventory.html")
+
+@bp.route("/inventory/<item_id>/edit", methods=["GET", "POST"])
+def edit_inventory_item(item_id):
+    item = Inventory.query.get_or_404(item_id)
+
+    if request.method == "POST":
+        item.item_name = request.form["item_name"]
+        item.quantity = float(request.form["quantity"])
+        item.unit_cost = float(request.form["unit_cost"])
+
+        from datetime import datetime, timezone
+        item.last_updated = datetime.now(timezone.utc)
+
+        db.session.commit()
+        flash("Item updated successfully", "success")
+        return redirect(url_for("main.inventory_dashboard"))
+
+    return render_template("edit_inventory.html", item=item)
+
+
+@bp.route("/inventory/<item_id>/delete", methods=["POST"])
+def delete_inventory_item(item_id):
+    item = Inventory.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    flash("Item deleted", "success")
+    return redirect(url_for("main.inventory_dashboard"))
